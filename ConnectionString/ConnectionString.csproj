@@ -2,6 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>DXSdata</Authors>
+    <Company>DXSdata GmbH</Company>
+    <Description>Advanced ConnectionString handling for .NET Core / Standard, especially for MySQL / MariaDB.</Description>
   </PropertyGroup>
 
   <ItemGroup>
