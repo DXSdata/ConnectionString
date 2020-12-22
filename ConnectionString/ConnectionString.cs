@@ -39,12 +39,14 @@ namespace DXSdata.ConnectionString
         /// </summary>
         /// <param name="part"></param>
         /// <returns></returns>
-        private string BuildRaw(ConnectionStringPart part)
+        private string BuildRaw(ConnectionStringPart part, bool protectPw = false)
         {
             return
                 (part != ConnectionStringPart.Other ? part.ToString().ToLower() + "=" : "")
                     +
-                (Parts.ContainsKey(part) ? Parts[part] : "");
+                (Parts.ContainsKey(part) ? 
+                    (protectPw && part == ConnectionStringPart.Password ? "********" : Parts[part] )
+                    : "");
         }
 
         /// <summary>
@@ -61,7 +63,8 @@ namespace DXSdata.ConnectionString
         /// </summary>
         /// <param name="dbConnectionString"></param>
         /// <returns></returns>
-        public string ResultSafe { get => Regex.Replace(Result.ToLower(), "password=.*?;", "password=********;"); }
+        public string ResultSafe { get => string.Join(";", Parts.Select(p => BuildRaw(p.Key, true))).Replace(";;", ";"); }
+        //public string ResultSafe { get => Regex.Replace(Result.ToLower(), "password=.*?;", "password=********;"); }
 
         public void Init(string raw = null, bool useEnvironmentVariables = true)
         {

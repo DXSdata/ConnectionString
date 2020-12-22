@@ -6,6 +6,9 @@
     <Authors>DXSdata</Authors>
     <Company>DXSdata GmbH</Company>
     <Description>Advanced ConnectionString handling for .NET Core / Standard, especially for MySQL / MariaDB.</Description>
+    <PackageId>ConnectionString.DXSdata</PackageId>
+    <RepositoryUrl>https://github.com/DXSdata/ConnectionString</RepositoryUrl>
+    <PackageProjectUrl>https://www.dxsdata.com</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
