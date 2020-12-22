@@ -9,6 +9,7 @@
     <PackageId>ConnectionString.DXSdata</PackageId>
     <RepositoryUrl>https://github.com/DXSdata/ConnectionString</RepositoryUrl>
     <PackageProjectUrl>https://www.dxsdata.com</PackageProjectUrl>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
