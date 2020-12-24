@@ -17,19 +17,21 @@ namespace DXSdata.ConnectionString
         public Dictionary<ConnectionStringPart, string> Parts { get; set; }
 
         /// <summary>
-        /// Presets, default values for new instances
+        /// Presets, default values for new instances.
+        /// Be careful if you are using e.g. multiple databases!
+        /// In this case, for presets better use e.g. a static variable of this instance
         /// </summary>
-        public static Dictionary<ConnectionStringPart, string> PartsDefault { get; set; } = new Dictionary<ConnectionStringPart, string>();
+        public static Dictionary<ConnectionStringPart, string> PartsDefaultGlobal { get; set; } = new Dictionary<ConnectionStringPart, string>();
 
         /// <summary>
         /// Conditions for IsTestMode being set to true
         /// </summary>
         /// <example>Criteria "ConnectionStringPart.Server, test" -> IsTestMode becomes true e.g. if server name is "mysqltestserver"</example>
-        public static List<(ConnectionStringPart part, string containedValue)> TestModeCriteria { get; set; } = new List<(ConnectionStringPart, string)>();        
+        public static List<(ConnectionStringPart part, string containedValue)> TestModeCriteriaGlobal { get; set; } = new List<(ConnectionStringPart, string)>();        
 
         public ConnectionString() => Init();
 
-        public ConnectionString(string raw, bool useEnvironmentVars = true) => Init(raw, useEnvironmentVars);
+        public ConnectionString(Dictionary<ConnectionStringPart, string> defaultParts = null, string raw = null, bool useEnvironmentVars = true) => Init(defaultParts, useEnvironmentVars, raw);
 
         public string UseEnvironmentVariablesPrefix { get; set; } = "DB_";
 
@@ -55,7 +57,7 @@ namespace DXSdata.ConnectionString
         public string Result
         {
             get => string.Join(";", Parts.Select(p => BuildRaw(p.Key))).Replace(";;", ";");
-            set => Init(value);
+            set => Init(raw: value);
         }
 
         /// <summary>
@@ -66,17 +68,31 @@ namespace DXSdata.ConnectionString
         public string ResultSafe { get => string.Join(";", Parts.Select(p => BuildRaw(p.Key, true))).Replace(";;", ";"); }
         //public string ResultSafe { get => Regex.Replace(Result.ToLower(), "password=.*?;", "password=********;"); }
 
-        public void Init(string raw = null, bool useEnvironmentVariables = true)
+        /// <summary>
+        /// Will be applied (overriden) in the parameter's order:
+        /// Global defaults < instance defaults < environment vars < raw connection string
+        /// </summary>
+        /// <param name="defaultParts"></param>
+        /// <param name="raw"></param>
+        /// <param name="useEnvironmentVariables"></param>
+        public void Init(Dictionary<ConnectionStringPart, string> defaultParts = null, bool useEnvironmentVariables = true, string raw = null)
         {
             //Set some sample criteria to distinguish between production and test mode
-            if (TestModeCriteria.Count == 0)
+            if (TestModeCriteriaGlobal.Count == 0)
             {
-                TestModeCriteria.Add((ConnectionStringPart.Server, "test"));
-                TestModeCriteria.Add((ConnectionStringPart.Server, "dev"));
+                TestModeCriteriaGlobal.Add((ConnectionStringPart.Server, "test"));
+                TestModeCriteriaGlobal.Add((ConnectionStringPart.Server, "dev"));
                 //TestModeCriteria.Add(ConnectionStringPart.Server, "localhost"); //does not always mean "test mode", e.g. production server and DB could be on same server
             }
 
-            Parts = PartsDefault.Copy();
+
+            Parts = PartsDefaultGlobal.Copy();
+
+
+            if (defaultParts != null)
+                foreach (var dp in defaultParts)
+                    Set(dp.Key, dp.Value);
+
 
             if (useEnvironmentVariables)
                 foreach (DictionaryEntry envVar in Environment.GetEnvironmentVariables())
@@ -85,7 +101,6 @@ namespace DXSdata.ConnectionString
 
 
             var rawParts = raw?.Split(";".ToCharArray(), StringSplitOptions.RemoveEmptyEntries) ?? new string[] { };
-
             foreach (var rawPart in rawParts)
             {
                 var split = rawPart.Split("=".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
@@ -129,7 +144,7 @@ namespace DXSdata.ConnectionString
         /// <returns></returns>
         public bool IsTestMode 
         {
-            get => TestModeCriteria.Any(c => Get(c.part)?.ToLower()?.Contains(c.containedValue.ToLower()) ?? false);
+            get => TestModeCriteriaGlobal.Any(c => Get(c.part)?.ToLower()?.Contains(c.containedValue.ToLower()) ?? false);
         }
                 
 

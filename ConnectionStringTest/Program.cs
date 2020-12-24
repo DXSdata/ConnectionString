@@ -1,5 +1,6 @@
 ﻿using DXSdata.ConnectionString;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace ConnectionStringTest
@@ -8,12 +9,20 @@ namespace ConnectionStringTest
     {
         static void Main()
         {
-            ConnectionString.PartsDefault.Add(ConnectionStringPart.Server, "mysqltestserver");
+            ConnectionString.PartsDefaultGlobal.Add(ConnectionStringPart.Server, "mysqltestserver");
+
+            var instanceDefaultParts = new Dictionary<ConnectionStringPart, string>();
+            instanceDefaultParts.Add(ConnectionStringPart.Database, "mydbname");
 
             var cs = new ConnectionString();
+
+
+            cs = new ConnectionString(instanceDefaultParts);
+
+
             Debug.Assert(cs.IsTestMode);
 
-            cs.Database = "mydb";
+            cs.Database = "mydb2";
             Console.WriteLine(cs.Result);
 
             cs.Password = "mypw";
@@ -22,7 +31,7 @@ namespace ConnectionStringTest
             cs.Other = "Use Compression=false;SslMode=none;";
             Console.WriteLine(cs.ResultSafe);
 
-            cs = new ConnectionString("server=myserver");
+            cs = new ConnectionString(raw: "server=myserver");
             Debug.Assert(!cs.IsTestMode);
 
 
